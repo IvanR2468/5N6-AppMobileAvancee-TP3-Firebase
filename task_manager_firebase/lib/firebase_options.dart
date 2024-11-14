@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     authDomain: 'tp3-task-manager.firebaseapp.com',
     storageBucket: 'tp3-task-manager.firebasestorage.app',
   );
+
 }
