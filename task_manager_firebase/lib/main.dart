@@ -137,7 +137,15 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            const OutlinedButton(onPressed: signInWithGoogle, child: Text('Sign in with Google'))
+            const OutlinedButton(onPressed: signInWithGoogle, child: Text('signin with Google')),
+            MaterialButton(
+              onPressed: () async {
+                await GoogleSignIn().signOut();
+                await FirebaseAuth.instance.signOut();
+                setState(() {});
+              },
+              child: const Text("signout"),
+            ),
           ],
         ),
       ),
