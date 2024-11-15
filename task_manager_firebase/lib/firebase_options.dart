@@ -63,6 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '19222874887',
     projectId: 'tp3-task-manager',
     storageBucket: 'tp3-task-manager.firebasestorage.app',
+    androidClientId: '19222874887-nm63n58ihnf8pfaun0t709ddpg014ka1.apps.googleusercontent.com',
     iosClientId: '19222874887-erlnbirfs06qeiihl477k33c50boa0rd.apps.googleusercontent.com',
     iosBundleId: 'org.tp3fb.taskManagerFirebase',
   );
@@ -73,6 +74,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '19222874887',
     projectId: 'tp3-task-manager',
     storageBucket: 'tp3-task-manager.firebasestorage.app',
+    androidClientId: '19222874887-nm63n58ihnf8pfaun0t709ddpg014ka1.apps.googleusercontent.com',
     iosClientId: '19222874887-erlnbirfs06qeiihl477k33c50boa0rd.apps.googleusercontent.com',
     iosBundleId: 'org.tp3fb.taskManagerFirebase',
   );
