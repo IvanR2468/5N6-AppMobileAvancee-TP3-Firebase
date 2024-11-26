@@ -1,0 +1,30 @@
+{
+  "signIn": "Sign in",
+  "signUp": "Sign up",
+  "signOut": "Sign out",
+
+  "username": "Username",
+  "password": "Password",
+  "confirmedPassword": "Confirmed password",
+
+  "home": "Home",
+
+  "addTask": "Add task",
+  "progress": "Progress",
+  "elapsedTime": "Elapsed time",
+  "deadline": "Deadline",
+
+  "task": "Task",
+  "create": "Create",
+
+  "details": "Details",
+  "edit": "Edit",
+  "remove": "Remove",
+
+  "usernameTooShort": "Username too short",
+  "passwordTooShort": "Password too short",
+  "usernameAlreadyTaken": "Username already taken",
+  "signUpErrorMessage":"User not found. Please enter an existing user",
+  "connexionErrorMessage":"Connection failed. Please check your Wi-Fi settings.",
+  "tryAgain": "Try again"
+}
