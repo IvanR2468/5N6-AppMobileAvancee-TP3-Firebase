@@ -21,6 +21,7 @@
   "edit": "Edit",
   "remove": "Remove",
 
+  "passwordNotConfirmed": "Password doesn't match",
   "usernameTooShort": "Username too short",
   "passwordTooShort": "Password too short",
   "usernameAlreadyTaken": "Username already taken",

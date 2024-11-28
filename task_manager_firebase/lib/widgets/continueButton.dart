@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../pages/sign_in.dart';
 
-class continueButton extends StatelessWidget {
-  const continueButton({
+class ContinueButton extends StatelessWidget {
+  const ContinueButton({
     super.key,
   });
 
@@ -11,7 +11,7 @@ class continueButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        // Navigate to the second screen using push
+        // Navigate to the sign in screen using push
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const SignIn()),

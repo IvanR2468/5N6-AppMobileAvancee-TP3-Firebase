@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:sign_in_button/sign_in_button.dart';
-
+import 'package:task_manager_firebase/pages/home.dart';
 import '../generated/l10n.dart';
 import '../widgets/inputWidget.dart';
 
@@ -14,7 +14,6 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
-
     TextEditingController usernameController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
     TextEditingController confirmedPasswordController = TextEditingController();
@@ -40,20 +39,37 @@ class _SignUpState extends State<SignUp> {
               usernameController: confirmedPasswordController,
               labelText: S.of(context).confirmedPassword,
             ),
-            const SignInButton(
-                Buttons.google,
-                onPressed: signInWithGoogle,
-                text: 'signin with Google'),
-            OutlinedButton(onPressed: () async {
-              // await signUp();
-            },
-                child: Text(S.of(context).signUp)
+            OutlinedButton(
+              child: Text(S.of(context).signUp),
+              onPressed: () async {
+                if (passwordController.text == confirmedPasswordController.text) {
+                  CollectionReference usersCollection =
+                  FirebaseFirestore.instance.collection('users');
+                  usersCollection.add({
+                    'username': usernameController.text,
+                    'password': usernameController.text,
+                  });
+                  Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (context) =>  const Home()
+                      )
+                  );
+                } else {
+                  final snackBar = SnackBar(
+                    content: Text(S.of(context).passwordNotConfirmed),
+                    action: SnackBarAction(
+                        label: 'Ok',
+                        onPressed: () {}
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                }
+
+              },
             ),
           ],
         ),
       ),
     );
   }
-
-
 }

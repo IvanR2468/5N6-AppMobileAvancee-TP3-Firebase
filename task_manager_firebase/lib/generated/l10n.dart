@@ -210,6 +210,16 @@ class S {
     );
   }
 
+  /// `Password doesn't match`
+  String get passwordNotConfirmed {
+    return Intl.message(
+      'Password doesn\'t match',
+      name: 'passwordNotConfirmed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Username too short`
   String get usernameTooShort {
     return Intl.message(
