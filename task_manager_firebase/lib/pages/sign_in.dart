@@ -45,42 +45,7 @@ class _SignInState extends State<SignIn> {
             OutlinedButton(
               child: Text(S.of(context).signIn),
               onPressed: () async {
-                try {
-                  // Query Firestore for the user with the matching username
-                  QuerySnapshot snapshot = await _firestore
-                      .collection('users')
-                      .where('username', isEqualTo: usernameController.text)
-                      .limit(1)
-                      .get();
-
-                  if (snapshot.docs.isEmpty) {
-                    setState(() {
-                      _errorMessage = 'User not found';
-                    });
-                    return;
-                  }
-
-                  // Get the user document
-                  final userDoc = snapshot.docs.first;
-                  final storedPassword = userDoc['password'];  // You should use hashed passwords in practice
-
-                  if (storedPassword == passwordController.text) {
-                    // If the passwords match, you can proceed (e.g., navigate to the home page)
-                    print("User signed in successfully: ${userDoc['username']}");
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Home()),
-                    );
-                  } else {
-                    setState(() {
-                      _errorMessage = 'Incorrect password';
-                    });
-                  }
-                } catch (e) {
-                  setState(() {
-                    _errorMessage = 'An error occurred: $e';
-                  });
-                }
+                signIn();
               },
             ),
             TextButton(
@@ -120,6 +85,45 @@ class _SignInState extends State<SignIn> {
     );
   }
 
+  signIn() async {
+    try {
+      // Query Firestore for the user with the matching username
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .where('username', isEqualTo: usernameController.text)
+          .where('password', isEqualTo: passwordController.text)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        setState(() {
+          _errorMessage = 'User not found';
+        });
+        return;
+      }
+
+      // Get the user document
+      final userDoc = snapshot.docs.first;
+      final storedPassword = userDoc['password'];  // You should use hashed passwords in practice
+
+      if (storedPassword == passwordController.text) {
+        // If the passwords match, you can proceed (e.g., navigate to the home page)
+        print("User signed in successfully: ${userDoc['username']}");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Home()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'Incorrect password';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'An error occurred: $e';
+      });
+    }
+  }
   Future<UserCredential> signInWithGoogle() async {
     // Trigger the authentication flow
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
