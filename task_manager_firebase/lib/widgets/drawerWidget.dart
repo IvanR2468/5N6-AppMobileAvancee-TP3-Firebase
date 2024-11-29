@@ -12,19 +12,8 @@ class drawerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    String showUser(){
-      User? user = FirebaseAuth.instance.currentUser;
-      String? email = user?.email;
-      String? username = user?.uid;
-      if(email != null){
-        return email;
-      }
-      else if (username != null){
-        return username;
-      }
-      return 'No email or username';
-    }
+    User? user = FirebaseAuth.instance.currentUser;
+    String? email = user?.email;
 
     return Drawer(
       child: ListView(
@@ -33,7 +22,7 @@ class drawerWidget extends StatelessWidget {
               decoration: BoxDecoration(
                   color: Colors.deepPurple[200]
               ),
-              child: Text(showUser())
+              child: (email == null) ? const Text('') : Text(email)
           ),
           // ListTile(
           //   leading: const Icon(Icons.home),

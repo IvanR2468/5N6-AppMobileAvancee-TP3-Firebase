@@ -17,11 +17,14 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String _errorMessage = '';
+
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    TextEditingController usernameController = TextEditingController();
-    TextEditingController passwordController = TextEditingController();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -40,10 +43,46 @@ class _SignInState extends State<SignIn> {
               labelText: S.of(context).password,
             ),
             OutlinedButton(
-                onPressed: () async {
-                  // Sign in logic
-                },
-                child: Text(S.of(context).signIn)),
+              child: Text(S.of(context).signIn),
+              onPressed: () async {
+                try {
+                  // Query Firestore for the user with the matching username
+                  QuerySnapshot snapshot = await _firestore
+                      .collection('users')
+                      .where('username', isEqualTo: usernameController.text)
+                      .limit(1)
+                      .get();
+
+                  if (snapshot.docs.isEmpty) {
+                    setState(() {
+                      _errorMessage = 'User not found';
+                    });
+                    return;
+                  }
+
+                  // Get the user document
+                  final userDoc = snapshot.docs.first;
+                  final storedPassword = userDoc['password'];  // You should use hashed passwords in practice
+
+                  if (storedPassword == passwordController.text) {
+                    // If the passwords match, you can proceed (e.g., navigate to the home page)
+                    print("User signed in successfully: ${userDoc['username']}");
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Home()),
+                    );
+                  } else {
+                    setState(() {
+                      _errorMessage = 'Incorrect password';
+                    });
+                  }
+                } catch (e) {
+                  setState(() {
+                    _errorMessage = 'An error occurred: $e';
+                  });
+                }
+              },
+            ),
             TextButton(
               child: Text(S.of(context).signUp),
               onPressed: () {
@@ -51,9 +90,21 @@ class _SignInState extends State<SignIn> {
                     MaterialPageRoute(builder: (context) => const SignUp()));
               },
             ),
+            if (_errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  _errorMessage,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            const Divider(
+              indent: 25,
+              endIndent: 25,
+            ),
             SignInButton(
               Buttons.google,
-              text: 'signin with Google',
+              text: 'Sign in with Google',
               onPressed: () async {
                 await signInWithGoogle();
                 Navigator.push(
@@ -62,14 +113,10 @@ class _SignInState extends State<SignIn> {
                 );
               },
             ),
+
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -79,7 +126,7 @@ class _SignInState extends State<SignIn> {
 
     // Obtain the auth details from the request
     final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+    await googleUser?.authentication;
 
     // Create a new credential
     final credential = GoogleAuthProvider.credential(

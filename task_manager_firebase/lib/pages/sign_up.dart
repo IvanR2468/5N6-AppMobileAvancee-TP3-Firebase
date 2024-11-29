@@ -41,30 +41,30 @@ class _SignUpState extends State<SignUp> {
             ),
             OutlinedButton(
               child: Text(S.of(context).signUp),
-              onPressed: () async {
-                if (passwordController.text == confirmedPasswordController.text) {
-                  CollectionReference usersCollection =
-                  FirebaseFirestore.instance.collection('users');
-                  usersCollection.add({
-                    'username': usernameController.text,
-                    'password': usernameController.text,
-                  });
-                  Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (context) =>  const Home()
-                      )
-                  );
-                } else {
-                  final snackBar = SnackBar(
-                    content: Text(S.of(context).passwordNotConfirmed),
-                    action: SnackBarAction(
-                        label: 'Ok',
-                        onPressed: () {}
-                    ),
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                }
-
+              onPressed: () {
+                // if (passwordController.text == confirmedPasswordController.text) {
+                //
+                // } else {
+                //   final snackBar = SnackBar(
+                //     content: Text(S.of(context).passwordNotConfirmed),
+                //     action: SnackBarAction(
+                //         label: 'Ok',
+                //         onPressed: () {}
+                //     ),
+                //   );
+                //   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                // }
+                CollectionReference usersCollection =
+                FirebaseFirestore.instance.collection('users');
+                usersCollection.add({
+                  'username': usernameController.text,
+                  'password': passwordController.text,
+                });
+                Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (context) =>  const Home()
+                    )
+                );
               },
             ),
           ],
