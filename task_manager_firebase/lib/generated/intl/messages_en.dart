@@ -32,6 +32,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "details": MessageLookupByLibrary.simpleMessage("Details"),
         "edit": MessageLookupByLibrary.simpleMessage("Edit"),
         "elapsedTime": MessageLookupByLibrary.simpleMessage("Elapsed time"),
+        "email": MessageLookupByLibrary.simpleMessage("Email"),
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
         "passwordNotConfirmed":

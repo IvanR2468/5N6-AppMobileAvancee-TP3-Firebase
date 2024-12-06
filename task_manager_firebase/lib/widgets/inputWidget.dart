@@ -5,11 +5,11 @@ import '../generated/l10n.dart';
 class inputWidget extends StatelessWidget {
   const inputWidget({
     super.key,
-    required this.usernameController,
+    required this.controller,
     required this.labelText
   });
 
-  final TextEditingController usernameController;
+  final TextEditingController controller;
   final String labelText;
 
   @override
@@ -17,7 +17,7 @@ class inputWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(25,5,25,5),
       child: TextField(
-        controller: usernameController,
+        controller: controller,
         decoration: InputDecoration(
             border: const OutlineInputBorder(),
             labelText: labelText

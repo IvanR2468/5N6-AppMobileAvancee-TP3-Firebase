@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:task_manager_firebase/pages/home.dart';
 import '../generated/l10n.dart';
@@ -14,7 +15,7 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
-    TextEditingController usernameController = TextEditingController();
+    TextEditingController emailController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
     TextEditingController confirmedPasswordController = TextEditingController();
 
@@ -28,20 +29,20 @@ class _SignUpState extends State<SignUp> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             inputWidget(
-              usernameController: usernameController,
-              labelText: S.of(context).username,
+              controller: emailController,
+              labelText: S.of(context).email,
             ),
             inputWidget(
-              usernameController: passwordController,
+              controller: passwordController,
               labelText: S.of(context).password,
             ),
             inputWidget(
-              usernameController: confirmedPasswordController,
+              controller: confirmedPasswordController,
               labelText: S.of(context).confirmedPassword,
             ),
             OutlinedButton(
               child: Text(S.of(context).signUp),
-              onPressed: () {
+              onPressed: () async {
                 // if (passwordController.text == confirmedPasswordController.text) {
                 //
                 // } else {
@@ -54,12 +55,20 @@ class _SignUpState extends State<SignUp> {
                 //   );
                 //   ScaffoldMessenger.of(context).showSnackBar(snackBar);
                 // }
-                CollectionReference usersCollection =
-                FirebaseFirestore.instance.collection('users');
-                usersCollection.add({
-                  'username': usernameController.text,
-                  'password': passwordController.text,
-                });
+                try {
+                  final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                    email: emailController.text,
+                    password: passwordController.text,
+                  );
+                } on FirebaseAuthException catch (e) {
+                  if (e.code == 'weak-password') {
+                    print('The password provided is too weak.');
+                  } else if (e.code == 'email-already-in-use') {
+                    print('The account already exists for that email.');
+                  }
+                } catch (e) {
+                  print(e);
+                }
                 Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (context) =>  const Home()

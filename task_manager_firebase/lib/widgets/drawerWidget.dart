@@ -47,6 +47,7 @@ class drawerWidget extends StatelessWidget {
             onTap: () async {
               await GoogleSignIn().signOut();
               await FirebaseAuth.instance.signOut();
+              print("Déconnexion réussie");
               Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => const SignIn()));
             },

@@ -4,6 +4,7 @@
   "signOut": "Sign out",
 
   "username": "Username",
+  "email": "Email",
   "password": "Password",
   "confirmedPassword": "Confirmed password",
 

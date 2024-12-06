@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:task_manager_firebase/pages/home.dart';
 
 import '../generated/l10n.dart';
 import '../widgets/drawerWidget.dart';
+import '../widgets/inputWidget.dart';
 
 class Create extends StatefulWidget {
   const Create({super.key});
@@ -26,14 +28,9 @@ class _CreateState extends State<Create> {
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              margin: const EdgeInsets.fromLTRB(25, 5, 25, 5),
-              child: TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: S.of(context).task),
-              ),
+            inputWidget(
+              controller: nameController,
+              labelText: S.of(context).task,
             ),
             Container(
               margin: const EdgeInsets.fromLTRB(25, 5, 25, 5),
@@ -57,7 +54,15 @@ class _CreateState extends State<Create> {
             OutlinedButton(
               child: Text(S.of(context).create),
               onPressed: () async {
-
+                DateTime deadline = DateTime.parse(deadlineController.text);
+                CollectionReference tasksCollection =
+                    FirebaseFirestore.instance.collection('tasks');
+                tasksCollection.add({
+                  'name': nameController.text,
+                  'deadline': deadline,
+                });
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const Home()));
               },
             ),
             TextButton(
@@ -68,8 +73,7 @@ class _CreateState extends State<Create> {
               },
             ),
           ],
-        )
-    );
+        ));
   }
 
   Future<void> _selectDate() async {

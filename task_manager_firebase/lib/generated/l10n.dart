@@ -90,6 +90,16 @@ class S {
     );
   }
 
+  /// `Email`
+  String get email {
+    return Intl.message(
+      'Email',
+      name: 'email',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Password`
   String get password {
     return Intl.message(

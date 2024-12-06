@@ -20,7 +20,7 @@ class _SignInState extends State<SignIn> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String _errorMessage = '';
 
-  TextEditingController usernameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   @override
@@ -35,17 +35,21 @@ class _SignInState extends State<SignIn> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             inputWidget(
-              usernameController: usernameController,
-              labelText: S.of(context).username,
+              controller: emailController,
+              labelText: S.of(context).email,
             ),
             inputWidget(
-              usernameController: passwordController,
+              controller: passwordController,
               labelText: S.of(context).password,
             ),
             OutlinedButton(
               child: Text(S.of(context).signIn),
               onPressed: () async {
                 signIn();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Home()),
+                );
               },
             ),
             TextButton(
@@ -78,7 +82,6 @@ class _SignInState extends State<SignIn> {
                 );
               },
             ),
-
           ],
         ),
       ),
@@ -87,50 +90,25 @@ class _SignInState extends State<SignIn> {
 
   signIn() async {
     try {
-      // Query Firestore for the user with the matching username
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .where('username', isEqualTo: usernameController.text)
-          .where('password', isEqualTo: passwordController.text)
-          .limit(1)
-          .get();
-
-      if (snapshot.docs.isEmpty) {
-        setState(() {
-          _errorMessage = 'User not found';
-        });
-        return;
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailController.text, password: passwordController.text);
+      print('user found for that email:${emailController.text}');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        print('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        print('Wrong password provided for that user.');
       }
-
-      // Get the user document
-      final userDoc = snapshot.docs.first;
-      final storedPassword = userDoc['password'];  // You should use hashed passwords in practice
-
-      if (storedPassword == passwordController.text) {
-        // If the passwords match, you can proceed (e.g., navigate to the home page)
-        print("User signed in successfully: ${userDoc['username']}");
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Home()),
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'Incorrect password';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'An error occurred: $e';
-      });
     }
   }
+
   Future<UserCredential> signInWithGoogle() async {
     // Trigger the authentication flow
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
     // Obtain the auth details from the request
     final GoogleSignInAuthentication? googleAuth =
-    await googleUser?.authentication;
+        await googleUser?.authentication;
 
     // Create a new credential
     final credential = GoogleAuthProvider.credential(
