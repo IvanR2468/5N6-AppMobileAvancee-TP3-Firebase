@@ -17,8 +17,32 @@ class Create extends StatefulWidget {
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 TextEditingController nameController = TextEditingController();
 TextEditingController deadlineController = TextEditingController();
+User? user; // Define a class-level variable to store the current user
 
 class _CreateState extends State<Create> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch the current user when the widget is initialized
+    _fetchCurrentUser();
+  }
+
+  // Fetch the current user asynchronously
+  Future<void> _fetchCurrentUser() async {
+    try {
+      user = await getCurrentUser();
+      if (user != null) {
+        print("Current user: ${user!.email}");
+      } else {
+        print("No user is logged in!");
+      }
+    } catch (e) {
+      // Handle any errors that occur while fetching the user
+      print("Error fetching current user: $e");
+    }
+    setState(() {}); // Trigger a rebuild to update the UI
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,11 +80,8 @@ class _CreateState extends State<Create> {
             OutlinedButton(
               child: Text(S.of(context).create),
               onPressed: () async {
-                User? user = await getCurrentUser();
-                await addUser(user);
-                await addTask(user!.uid);
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const Home()));
+                await addUser();
+                await addTask();
               },
             ),
             TextButton(
@@ -99,40 +120,90 @@ class _CreateState extends State<Create> {
       return null;
     }
   }
-}
 
 // Fonction pour ajouter le user connecté à la collection de Users dans Firestore
-Future<void> addUser(User? user) async {
-  CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
-  print('ICI: $usersCollection');
-  DocumentReference userDoc = usersCollection.doc(user?.uid); // Replace 'userId' with the actual document ID
+  Future<void> addUser() async {
+    CollectionReference usersCollection =
+        FirebaseFirestore.instance.collection('users');
+    print('ICI: $usersCollection');
+    DocumentReference userDoc = usersCollection
+        .doc(user?.uid); // Replace 'userId' with the actual document ID
 
-  try {
-    // Update the document with the new field
-    await userDoc.set({
-      'email': user?.email, // Add the field you want to create
-    });
-    print('Field added/updated successfully!');
-  } catch (e) {
-    print('Error adding email: $e');
+    try {
+      // Update the document with the new field
+      await userDoc.set({
+        'email': user?.email, // Add the field you want to create
+      });
+      print('Field added/updated successfully!');
+    } catch (e) {
+      print('Error adding email: $e');
+    }
   }
-}
 
 // Fonction pour ajouter une tâche à la collection Firestore
-Future<void> addTask(String userId) async {
-  DateTime deadline = DateTime.parse(deadlineController.text);
-  try {
-    // Ajouter un document à la collection "tasks" pour un utilisateur spécifique
-    await _firestore.collection('users')
-        .doc(userId)  // Identifiant de l'utilisateur
-        .collection('tasks')  // Sous-collection "tasks"
-        .add({
-      'name': nameController.text,
-      'deadline': deadline, // Date de création
-    });
+  Future<void> addTask() async {
+    DateTime deadline = DateTime.parse(deadlineController.text);
+    String name = nameController.text.trim();
+    if (name.isEmpty) {
+      showError();
+      return;
+    }
+    if (await nameExist(user!, name)) {
+      showError();
+      return;
+    }
+    try {
+      // Ajouter un document (une tâche) à la collection "tasks" pour un utilisateur spécifique
+      await _firestore
+          .collection('users')
+          .doc(user!.uid) // Identifiant de l'utilisateur
+          .collection('tasks') // Sous-collection "tasks"
+          .add({
+        'name': name,
+        'deadline': deadline, // Date de création
+      });
+      print("Tâche ajoutée avec succès !");
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const Home()));
+    } catch (e) {
+      print("Erreur lors de l'ajout de la tâche : $e");
+    }
+  }
 
-    print("Tâche ajoutée avec succès !");
-  } catch (e) {
-    print("Erreur lors de l'ajout de la tâche : $e");
+  void showError() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Dialog Title'),
+          content: const Text('This is a simple dialog!'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> nameExist(User user, String name) async {
+    // Récupérer une tâche de l'utilisateur avec un nom spécifique
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('tasks')
+        .where('name', isEqualTo: name)
+        .get();
+
+    // Vérifier s'il y a des résultats
+    if (querySnapshot.docs.isNotEmpty) {
+      return true;
+    } else {
+      return true;
+    }
   }
 }
