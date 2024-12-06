@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:task_manager_firebase/pages/home.dart';
 
@@ -13,6 +14,7 @@ class Create extends StatefulWidget {
   State<Create> createState() => _CreateState();
 }
 
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 TextEditingController nameController = TextEditingController();
 TextEditingController deadlineController = TextEditingController();
 
@@ -54,13 +56,9 @@ class _CreateState extends State<Create> {
             OutlinedButton(
               child: Text(S.of(context).create),
               onPressed: () async {
-                DateTime deadline = DateTime.parse(deadlineController.text);
-                CollectionReference tasksCollection =
-                    FirebaseFirestore.instance.collection('tasks');
-                tasksCollection.add({
-                  'name': nameController.text,
-                  'deadline': deadline,
-                });
+                User? user = await getCurrentUser();
+                await addUser(user);
+                await addTask(user!.uid);
                 Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => const Home()));
               },
@@ -82,5 +80,59 @@ class _CreateState extends State<Create> {
     if (picked != null) {
       deadlineController.text = picked.toString().split(" ")[0];
     }
+  }
+
+  Future<User?> getCurrentUser() async {
+    try {
+      // Récupérer l'utilisateur actuel
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        print("Utilisateur connecté : ${user.email}");
+        return user;
+      } else {
+        print("Aucun utilisateur connecté");
+        return null;
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération de l'utilisateur : $e");
+      return null;
+    }
+  }
+}
+
+// Fonction pour ajouter le user connecté à la collection de Users dans Firestore
+Future<void> addUser(User? user) async {
+  CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
+  print('ICI: $usersCollection');
+  DocumentReference userDoc = usersCollection.doc(user?.uid); // Replace 'userId' with the actual document ID
+
+  try {
+    // Update the document with the new field
+    await userDoc.set({
+      'email': user?.email, // Add the field you want to create
+    });
+    print('Field added/updated successfully!');
+  } catch (e) {
+    print('Error adding email: $e');
+  }
+}
+
+// Fonction pour ajouter une tâche à la collection Firestore
+Future<void> addTask(String userId) async {
+  DateTime deadline = DateTime.parse(deadlineController.text);
+  try {
+    // Ajouter un document à la collection "tasks" pour un utilisateur spécifique
+    await _firestore.collection('users')
+        .doc(userId)  // Identifiant de l'utilisateur
+        .collection('tasks')  // Sous-collection "tasks"
+        .add({
+      'name': nameController.text,
+      'deadline': deadline, // Date de création
+    });
+
+    print("Tâche ajoutée avec succès !");
+  } catch (e) {
+    print("Erreur lors de l'ajout de la tâche : $e");
   }
 }

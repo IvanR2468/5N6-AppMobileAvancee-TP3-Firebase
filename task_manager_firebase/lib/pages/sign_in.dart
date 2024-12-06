@@ -17,7 +17,6 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String _errorMessage = '';
 
   TextEditingController emailController = TextEditingController();
@@ -92,7 +91,7 @@ class _SignInState extends State<SignIn> {
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text, password: passwordController.text);
-      print('user found for that email:${emailController.text}');
+      print('USER FOUND: ${emailController.text}');
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         print('No user found for that email.');
