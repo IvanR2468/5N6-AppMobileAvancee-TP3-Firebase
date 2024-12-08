@@ -57,6 +57,7 @@ class _CreateState extends State<Create> {
             inputWidget(
               controller: nameController,
               labelText: S.of(context).task,
+              obscureText: false,
             ),
             Container(
               margin: const EdgeInsets.fromLTRB(25, 5, 25, 5),

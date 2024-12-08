@@ -18,7 +18,6 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn> {
   String _errorMessage = '';
-
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -36,19 +35,20 @@ class _SignInState extends State<SignIn> {
             inputWidget(
               controller: emailController,
               labelText: S.of(context).email,
+              obscureText: false,
             ),
             inputWidget(
               controller: passwordController,
               labelText: S.of(context).password,
+              obscureText: true,
             ),
             OutlinedButton(
               child: Text(S.of(context).signIn),
               onPressed: () async {
-                signIn();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Home()),
-                );
+                // First, validate input
+                if (_inputsAreValid()) {
+                  await signIn();
+                }
               },
             ),
             TextButton(
@@ -87,35 +87,79 @@ class _SignInState extends State<SignIn> {
     );
   }
 
+  // Validate email and password input
+  bool _inputsAreValid() {
+    setState(() {
+      _errorMessage = ''; // Clear previous error message
+    });
+
+    if (emailController.text.isEmpty) {
+      setState(() {
+        _errorMessage = 'Email cannot be empty';
+      });
+      return false;
+    }
+
+    if (passwordController.text.isEmpty) {
+      setState(() {
+        _errorMessage = 'Password cannot be empty';
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  // Firebase Email/Password Sign-In
   signIn() async {
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text, password: passwordController.text);
+          email: emailController.text,
+          password: passwordController.text
+      );
       print('USER FOUND: ${emailController.text}');
+      // After successful sign-in, navigate to the home screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Home()),
+      );
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        print('No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        print('Wrong password provided for that user.');
-      }
+      setState(() {
+        if (e.code == 'user-not-found') {
+          _errorMessage = 'No user found for that email.';
+        } else if (e.code == 'wrong-password') {
+          _errorMessage = 'Wrong password provided for that user.';
+        } else {
+          _errorMessage = e.message ?? 'An error occurred. Please try again.';
+        }
+      });
+      print(_errorMessage);
     }
   }
 
+  // Firebase Google Sign-In
   Future<UserCredential> signInWithGoogle() async {
-    // Trigger the authentication flow
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        // User canceled Google sign-in
+        return Future.error('Google sign-in canceled');
+      }
 
-    // Obtain the auth details from the request
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+      final GoogleSignInAuthentication? googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
 
-    // Create a new credential
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
-
-    // Once signed in, return the UserCredential
-    return await FirebaseAuth.instance.signInWithCredential(credential);
+      // Once signed in, return the UserCredential
+      return await FirebaseAuth.instance.signInWithCredential(credential);
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Google sign-in failed: ${e.toString()}';
+      });
+      print(_errorMessage);
+      return Future.error(e.toString());
+    }
   }
 }
