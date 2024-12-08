@@ -54,7 +54,7 @@ class _SignInState extends State<SignIn> {
             TextButton(
               child: Text(S.of(context).signUp),
               onPressed: () {
-                Navigator.of(context).push(
+                Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (context) => const SignUp()));
               },
             ),
@@ -75,7 +75,7 @@ class _SignInState extends State<SignIn> {
               text: 'Sign in with Google',
               onPressed: () async {
                 await signInWithGoogle();
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const Home()),
                 );

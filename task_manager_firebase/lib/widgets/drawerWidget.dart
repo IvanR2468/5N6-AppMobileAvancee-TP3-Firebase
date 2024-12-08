@@ -29,7 +29,7 @@ class drawerWidget extends StatelessWidget {
             onTap: () {
               // Update the state of the app.
               Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (context) => const Home()));
+                  .pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
             },
           ),
           ListTile(
@@ -37,7 +37,7 @@ class drawerWidget extends StatelessWidget {
             title: Text(S.of(context).addTask),
             onTap: () {
               // Update the state of the app.
-              Navigator.of(context).push(
+              Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const Create()));
             },
           ),
@@ -48,7 +48,7 @@ class drawerWidget extends StatelessWidget {
               await GoogleSignIn().signOut();
               await FirebaseAuth.instance.signOut();
               print("Déconnexion réussie");
-              Navigator.of(context).push(
+              Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const SignIn()));
             },
           ),

@@ -88,7 +88,7 @@ class _CreateState extends State<Create> {
             TextButton(
               child: Text(S.of(context).home),
               onPressed: () {
-                Navigator.of(context).push(
+                Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (context) => const Home()));
               },
             ),
@@ -164,7 +164,7 @@ class _CreateState extends State<Create> {
         'deadline': deadline, // Date de création
       });
       print("Tâche ajoutée avec succès !");
-      Navigator.of(context).push(
+      Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const Home()));
     } catch (e) {
       print("Erreur lors de l'ajout de la tâche : $e");
