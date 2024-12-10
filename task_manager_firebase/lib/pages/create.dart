@@ -102,6 +102,8 @@ class _CreateState extends State<Create> {
         'percentagedone': 0,
       });
 
+      nameController.clear();
+      deadlineController.clear();
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
     } catch (e) {
       print("Error adding task: $e");

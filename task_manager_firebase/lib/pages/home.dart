@@ -71,6 +71,7 @@ class _HomeState extends State<Home> {
           'percentagedone': doc['percentagedone'],
           'percentagetimespent': percentSpent,
           'imageUrl': 'https://picsum.photos/150',  // Placeholder image
+          'docId': doc.id, // Store the document ID for deletion
         });
       }
 
@@ -79,6 +80,28 @@ class _HomeState extends State<Home> {
     } catch (e) {
       // If an error occurs, print it (you can log or show more specific error messages here)
       print("Error fetching tasks: $e");
+    }
+  }
+
+  // Delete a task from Firestore
+  Future<void> _deleteTask(String taskId) async {
+    try {
+      // Delete the task document from Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('tasks')
+          .doc(taskId)
+          .delete();
+
+      // Remove the task from the local list after successful deletion
+      setState(() {
+        tasks.removeWhere((task) => task['docId'] == taskId);
+      });
+
+      print("Task deleted successfully.");
+    } catch (e) {
+      print("Error deleting task: $e");
     }
   }
 
@@ -91,7 +114,7 @@ class _HomeState extends State<Home> {
       ),
       drawer: const drawerWidget(),
       body: tasks.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: Text('No task for the moment'))
           : ListView.builder(
         itemCount: tasks.length,
         itemBuilder: (context, index) {
@@ -118,6 +141,13 @@ class _HomeState extends State<Home> {
                   fit: BoxFit.cover,
                 ),
               ),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                // Call the delete method when the button is pressed
+                _deleteTask(task['docId']);
+              },
             ),
           );
         },
