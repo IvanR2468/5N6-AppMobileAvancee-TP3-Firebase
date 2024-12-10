@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager_firebase/firestore_service.dart';
 import 'package:task_manager_firebase/pages/create.dart';
 
 import 'home.dart';
@@ -41,7 +42,7 @@ class _EditPageState extends State<Edit> {
       print("Updated Percentage Done: $percentageDone");
 
       // Debugging: Print the document path to check if it's correct
-      final userId = user!.uid;
+      final userId = FirestoreService.getUser()!.uid;
       final docId = widget.task['docId'];
       print("Updating task at path: users/$userId/tasks/$docId");
 

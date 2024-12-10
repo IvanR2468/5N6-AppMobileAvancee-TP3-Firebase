@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -65,7 +66,6 @@ class _SignInState extends State<SignIn> {
       text: 'Continue with Google',
       onPressed: () async {
         await signInWithGoogle();
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Home()));
       },
     );
   }
@@ -125,7 +125,9 @@ class _SignInState extends State<SignIn> {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      final credentials =  await FirebaseAuth.instance.signInWithCredential(credential);
+      // final User? user = credentials.user;
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Home()));
     } catch (e) {
       setState(() => _errorMessage = 'Google sign-in failed: ${e.toString()}');
     }

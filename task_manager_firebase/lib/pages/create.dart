@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager_firebase/firestore_service.dart';
 import 'package:task_manager_firebase/pages/home.dart';
 import '../generated/l10n.dart';
 import '../widgets/drawerWidget.dart';
@@ -13,12 +12,10 @@ class Create extends StatefulWidget {
   State<Create> createState() => _CreateState();
 }
 
-final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-final nameController = TextEditingController();
-final deadlineController = TextEditingController();
-User? user = FirebaseAuth.instance.currentUser;
-
 class _CreateState extends State<Create> {
+
+  TextEditingController nameController = TextEditingController();
+  TextEditingController deadlineController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -93,14 +90,7 @@ class _CreateState extends State<Create> {
     }
 
     try {
-      final now = DateTime.now();
-      await _firestore.collection('users').doc(user!.uid).collection('tasks').add({
-        'name': name,
-        'deadline': deadline,
-        'creationDate': now,// Store deadline as a Timestamp
-        'percentagetimespent': 0,
-        'percentagedone': 0,
-      });
+      FirestoreService.addTask(name, deadline);
 
       nameController.clear();
       deadlineController.clear();
@@ -112,8 +102,7 @@ class _CreateState extends State<Create> {
 
   // Check if task name already exists
   Future<bool> _taskExists(String name) async {
-    final querySnapshot = await _firestore.collection('users').doc(user!.uid).collection('tasks').where('name', isEqualTo: name).get();
-    return querySnapshot.docs.isNotEmpty;
+    return await FirestoreService.taskExists(name);
   }
 
   // Show error dialog
