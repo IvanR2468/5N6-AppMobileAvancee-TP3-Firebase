@@ -84,11 +84,19 @@ class _CreateState extends State<Create> {
     final name = nameController.text.trim();
     final deadline = DateTime.parse(deadlineController.text);
 
-    if (name.isEmpty || await _taskExists(name)) {
-      _showErrorDialog();
+    if (name.isEmpty) {
+      _showErrorDialog('make sure the name is not empty');
       return;
     }
-
+    if (await _taskExists(name)) {
+      _showErrorDialog('this task name already exist');
+      return;
+    }
+    // Check if the deadline is in the past
+    if (deadline.isBefore(DateTime.now())) {
+      _showErrorDialog('The past is in the past');
+      return;
+    }
     try {
       FirestoreService.addTask(name, deadline);
 
@@ -106,11 +114,11 @@ class _CreateState extends State<Create> {
   }
 
   // Show error dialog
-  void _showErrorDialog() {
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Error'),
+        title: Text(message),
         content: const Text('oopsie'),
         actions: [
           TextButton(
