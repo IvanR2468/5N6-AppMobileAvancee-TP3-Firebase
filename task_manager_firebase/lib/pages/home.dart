@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'edit.dart';
 
 import '../widgets/drawerWidget.dart';
 
@@ -23,39 +24,24 @@ class _HomeState extends State<Home> {
 
   // Fetch tasks from Firestore and calculate percent spent
   Future<void> _fetchTasks() async {
-    if (user == null) { return; } // Check if the user is logged in
+    if (user == null) { return; }
 
     try {
-      // Fetch all tasks for the current user from Firestore
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user!.uid)
           .collection('tasks')
           .get();
 
-      if (querySnapshot.docs.isEmpty) {
-        print("No tasks found.");
-      }
-
-      tasks = [];  // Clear the list before populating with new data
-
-      // Iterate through each task document in the Firestore collection
+      tasks = [];
       for (var doc in querySnapshot.docs) {
-        print("Fetching task: ${doc.id}");
-
-        // Convert the 'creationDate' and 'deadline' fields from Firestore to DateTime
         final creationDate = (doc['creationDate'] as Timestamp).toDate();
         final deadline = (doc['deadline'] as Timestamp).toDate();
-
-        // Calculate the total duration (from creation to deadline)
         final totalDuration = deadline.difference(creationDate);
-        // Calculate how much time has passed since creation
         final elapsedTime = DateTime.now().difference(creationDate);
 
-        // Calculate percentage of time spent
         final percentSpent = ((elapsedTime.inSeconds / totalDuration.inSeconds) * 100).clamp(0, 100);
 
-        // Update the task's 'percentagetimespent' field in Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user!.uid)
@@ -63,22 +49,19 @@ class _HomeState extends State<Home> {
             .doc(doc.id)
             .update({'percentagetimespent': percentSpent});
 
-        // Add the task data to the local list for UI display
         tasks.add({
           'name': doc['name'],
           'creationDate': creationDate,
           'deadline': deadline,
           'percentagedone': doc['percentagedone'],
           'percentagetimespent': percentSpent,
-          'imageUrl': 'https://picsum.photos/150',  // Placeholder image
-          'docId': doc.id, // Store the document ID for deletion
+          'imageUrl': 'https://picsum.photos/150',
+          'docId': doc.id,
         });
       }
 
-      // After all tasks have been fetched and updated, trigger a UI rebuild to display them
       setState(() {});
     } catch (e) {
-      // If an error occurs, print it (you can log or show more specific error messages here)
       print("Error fetching tasks: $e");
     }
   }
@@ -86,7 +69,6 @@ class _HomeState extends State<Home> {
   // Delete a task from Firestore
   Future<void> _deleteTask(String taskId) async {
     try {
-      // Delete the task document from Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user!.uid)
@@ -94,7 +76,6 @@ class _HomeState extends State<Home> {
           .doc(taskId)
           .delete();
 
-      // Remove the task from the local list after successful deletion
       setState(() {
         tasks.removeWhere((task) => task['docId'] == taskId);
       });
@@ -126,7 +107,6 @@ class _HomeState extends State<Home> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Deadline: ${task['deadline'].toLocal()}'),
-                // Display percentSpent as an integer
                 Text('Time Spent: ${task['percentagetimespent'].toInt()}%'),
                 Text('Completed: ${task['percentagedone']}%'),
               ],
@@ -142,12 +122,28 @@ class _HomeState extends State<Home> {
                 ),
               ),
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                // Call the delete method when the button is pressed
-                _deleteTask(task['docId']);
-              },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    // Navigate to Edit Task page and pass the task data
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Edit(task: task),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    _deleteTask(task['docId']);
+                  },
+                ),
+              ],
             ),
           );
         },
