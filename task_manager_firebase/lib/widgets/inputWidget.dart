@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../generated/l10n.dart';
-
 class inputWidget extends StatelessWidget {
   const inputWidget(
       {super.key,

@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:task_manager_firebase/pages/home.dart';
-
 import '../generated/l10n.dart';
 import '../widgets/drawerWidget.dart';
 import '../widgets/inputWidget.dart';
@@ -15,196 +14,120 @@ class Create extends StatefulWidget {
 }
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-TextEditingController nameController = TextEditingController();
-TextEditingController deadlineController = TextEditingController();
-User? user; // Define a class-level variable to store the current user
+final nameController = TextEditingController();
+final deadlineController = TextEditingController();
+User? user = FirebaseAuth.instance.currentUser;
 
 class _CreateState extends State<Create> {
-  @override
-  void initState() {
-    super.initState();
-    // Fetch the current user when the widget is initialized
-    _fetchCurrentUser();
-  }
-
-  // Fetch the current user asynchronously
-  Future<void> _fetchCurrentUser() async {
-    try {
-      user = await getCurrentUser();
-      if (user != null) {
-        print("Current user: ${user!.email}");
-      } else {
-        print("No user is logged in!");
-      }
-    } catch (e) {
-      // Handle any errors that occur while fetching the user
-      print("Error fetching current user: $e");
-    }
-    setState(() {}); // Trigger a rebuild to update the UI
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(S.of(context).create),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(S.of(context).create),
+      ),
+      drawer: const drawerWidget(),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          inputWidget(controller: nameController, labelText: S.of(context).task, obscureText: false),
+          _buildDeadlineInput(),
+          _buildCreateButton(),
+          _buildHomeButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeadlineInput() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+      child: TextField(
+        controller: deadlineController,
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          labelText: S.of(context).deadline,
+          hintText: 'YYYY-MM-DD',
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: _selectDate,
+          ),
         ),
-        drawer: const drawerWidget(),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            inputWidget(
-              controller: nameController,
-              labelText: S.of(context).task,
-              obscureText: false,
-            ),
-            Container(
-              margin: const EdgeInsets.fromLTRB(25, 5, 25, 5),
-              child: TextField(
-                controller: deadlineController,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: S.of(context).deadline,
-                  hintText: 'YYYY-MM-DD',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.calendar_today),
-                    onPressed: () => _selectDate(),
-                  ),
-                ),
-                readOnly: true,
-                onTap: () {
-                  _selectDate();
-                },
-              ),
-            ),
-            OutlinedButton(
-              child: Text(S.of(context).create),
-              onPressed: () async {
-                await addUser();
-                await addTask();
-              },
-            ),
-            TextButton(
-              child: Text(S.of(context).home),
-              onPressed: () {
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const Home()));
-              },
-            ),
-          ],
-        ));
+        readOnly: true,
+      ),
+    );
   }
 
-  Future<void> _selectDate() async {
-    DateTime? picked = await showDatePicker(
-        context: context, firstDate: DateTime(2000), lastDate: DateTime(2100));
-    if (picked != null) {
-      deadlineController.text = picked.toString().split(" ")[0];
-    }
+  Widget _buildCreateButton() {
+    return OutlinedButton(
+      child: Text(S.of(context).create),
+      onPressed: _addTask,
+    );
   }
 
-  Future<User?> getCurrentUser() async {
-    try {
-      // Récupérer l'utilisateur actuel
-      User? user = FirebaseAuth.instance.currentUser;
-
-      if (user != null) {
-        print("Utilisateur connecté : ${user.email}");
-        return user;
-      } else {
-        print("Aucun utilisateur connecté");
-        return null;
-      }
-    } catch (e) {
-      print("Erreur lors de la récupération de l'utilisateur : $e");
-      return null;
-    }
-  }
-
-// Fonction pour ajouter le user connecté à la collection de Users dans Firestore
-  Future<void> addUser() async {
-    CollectionReference usersCollection =
-        FirebaseFirestore.instance.collection('users');
-    print('ICI: $usersCollection');
-    DocumentReference userDoc = usersCollection
-        .doc(user?.uid); // Replace 'userId' with the actual document ID
-
-    try {
-      // Update the document with the new field
-      await userDoc.set({
-        'email': user?.email, // Add the field you want to create
-      });
-      print('Field added/updated successfully!');
-    } catch (e) {
-      print('Error adding email: $e');
-    }
-  }
-
-// Fonction pour ajouter une tâche à la collection Firestore
-  Future<void> addTask() async {
-    DateTime deadline = DateTime.parse(deadlineController.text);
-    String name = nameController.text.trim();
-    if (name.isEmpty) {
-      showError();
-      return;
-    }
-    if (await nameExist(user!, name)) {
-      showError();
-      return;
-    }
-    try {
-      // Ajouter un document (une tâche) à la collection "tasks" pour un utilisateur spécifique
-      await _firestore
-          .collection('users')
-          .doc(user!.uid) // Identifiant de l'utilisateur
-          .collection('tasks') // Sous-collection "tasks"
-          .add({
-        'name': name,
-        'deadline': deadline, // Date de création
-      });
-      print("Tâche ajoutée avec succès !");
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const Home()));
-    } catch (e) {
-      print("Erreur lors de l'ajout de la tâche : $e");
-    }
-  }
-
-  void showError() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Dialog Title'),
-          content: const Text('This is a simple dialog!'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
+  Widget _buildHomeButton() {
+    return TextButton(
+      child: Text(S.of(context).home),
+      onPressed: () {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
       },
     );
   }
 
-  Future<bool> nameExist(User user, String name) async {
-    // Récupérer une tâche de l'utilisateur avec un nom spécifique
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('tasks')
-        .where('name', isEqualTo: name)
-        .get();
+  // Date picker for deadline
+  Future<void> _selectDate() async {
+    DateTime? picked = await showDatePicker(
+        context: context, firstDate: DateTime(2000), lastDate: DateTime(2100));
+    if (picked != null) deadlineController.text = picked.toIso8601String().split('T')[0];
+  }
 
-    // Vérifier s'il y a des résultats
-    if (querySnapshot.docs.isNotEmpty) {
-      return true;
-    } else {
-      return true;
+  // Add task to Firestore
+  Future<void> _addTask() async {
+    final name = nameController.text.trim();
+    final deadline = DateTime.parse(deadlineController.text);
+
+    if (name.isEmpty || await _taskExists(name)) {
+      _showErrorDialog();
+      return;
     }
+
+    try {
+      final now = DateTime.now();
+      await _firestore.collection('users').doc(user!.uid).collection('tasks').add({
+        'name': name,
+        'deadline': deadline,
+        'creationDate': now,// Store deadline as a Timestamp
+        'percentagetimespent': 0,
+        'percentagedone': 0,
+      });
+
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
+    } catch (e) {
+      print("Error adding task: $e");
+    }
+  }
+
+  // Check if task name already exists
+  Future<bool> _taskExists(String name) async {
+    final querySnapshot = await _firestore.collection('users').doc(user!.uid).collection('tasks').where('name', isEqualTo: name).get();
+    return querySnapshot.docs.isNotEmpty;
+  }
+
+  // Show error dialog
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: const Text('oopsie'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 }
